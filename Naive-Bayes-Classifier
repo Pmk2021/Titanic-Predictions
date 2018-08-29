@@ -1,0 +1,46 @@
+import pandas as pd
+import numpy as np
+tfile = np.array(pd.read_csv('titanic_train.csv'))
+
+#p(a|b) == (p(b|a) * p(a))/p(b)
+#a = survived
+#b = variable
+#Given a column, finds the probability of an variable occuring
+#used for p(a) and p(b)
+def find_prob_of(column):
+    #dictionary to contain probabilities
+    outcomes = dict()
+    for i in column:
+        #creates new element if not in dict-
+        #else adds %chance of one element being in list
+        outcomes[i] = outcomes.get(i,0) + 1/len(column)
+    return outcomes
+
+#creates a list consisting of those who survived-
+#-to be used for p(b|a)
+survived = list()
+for i in tfile:
+    if i[5] == 1:
+        survived.append(list(i))
+survived = np.array(survived)
+#chance of survival
+sur_rate = find_prob_of(tfile[:,5])[1]
+#Checks the probability of a person having a given variable
+def formula(person, num):
+    return find_prob_of(tfile[:,num]).get(person[num],0)
+
+#uses the bayes equation to determine whether a-
+#-passenger is more likely to survive or die
+def did_survive(person):
+    result = 0
+    for i in range(len(person)-1):
+        p1 = sur_rate/formula(person,i)
+        p2 = find_prob_of(survived[:,i]).get(str(person[i]))
+        #if all instances off the variable were deleted-
+        #-in survived, adds 0 to the results
+        try:
+            result += p2*p1
+        except:
+            print('not found in survivors')
+    return(result/6 > 0.49999999)
+#call with did_survive(tfile[index-1])
